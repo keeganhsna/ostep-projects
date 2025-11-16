@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 #define MORE_LINES 1024
 #define MORE_CHARS 1024
@@ -12,23 +12,33 @@ int main(int argc, char* argv[]){
 	
 	if (argc == 1){
 		fp = stdin;
-	}else if (argc ==2){
-
-	fp = fopen("text.txt", "r");
-	//FILE *fp = fopen("text.txt","r");
+	} else if ( argc > 3){
+		fprintf(stderr,"usage: reverse <input> <output>\n");
+		exit(1);
+	}
+	if (argc > 1 ){
+	fp = fopen(argv[1], "r");
 	
 	if (fp == NULL){
-		fprintf(stderr,"error: cannot open file '%s'",argv[1]);
+		fprintf(stderr,"reverse: cannot open file '%s'\n",argv[1]);
 		exit(1);
 	}
-	} else{
-		fprintf(stderr,"usage: reverse <input> <output>");
-		exit(1);
 	}
+	if (argc ==3 ){
+		if(strcmp(argv[1],argv[2]) == 0){
+		fprintf(stderr, "reverse: input and output file must differ\n");
+		exit(1);}
+	}
+	
 
 	char **lines;
 	lines = malloc(sizeof(char *) * MORE_LINES);
 	
+	if (!lines){
+		fprintf(stderr,"malloc failed\n");
+		exit(1);
+	}
+
 	size_t total_lines = 0;
 	size_t total_chars = 0;
 	char c;
@@ -37,7 +47,7 @@ int main(int argc, char* argv[]){
 		c= fgetc(fp);
 		if(ferror(fp)){
 			printf("error reading file\n");
-			return 1;
+			exit(1);
 		}
 		if (feof(fp)){
 			
@@ -51,6 +61,11 @@ int main(int argc, char* argv[]){
 		}
 		if (total_chars ==0){
 			lines[total_lines] = malloc(MORE_CHARS);
+		
+	if (!lines[total_lines]){
+		fprintf(stderr,"malloc failed\n");
+		exit(1);
+	}
 		}
 		lines[total_lines][total_chars] = c;
 		total_chars ++;
@@ -80,21 +95,22 @@ int main(int argc, char* argv[]){
 			fprintf(stderr,"error: cannot open file '%s'",argv[2]);
 			exit(1);
 		}
-		for (size_t i = total_lines-1; i >=0; i --){
-			fprintf(wfp,"%s",lines[i]);
+		for (size_t i = total_lines; i >0; i --){
+			fprintf(wfp,"%s",lines[i-1]);
 		}
 		fclose(wfp);
+	}else{
+		for (size_t i = total_lines; i >0; i--){
+			fprintf(stdout,"%s",lines[i-1]);
+		}
 	}
 
-	for (size_t i = total_lines-1; i >=0; i --){
-		printf("%s", lines[i]);
-	}
 	
-	for (size_t i = total_lines-1; i >=0; i --){
-		free(lines[i]);}	
+	for (size_t i = total_lines; i >0; i --){
+		free(lines[i-1]);}	
 	
 	free(lines);
 	//free these
 	fclose(fp);
-	return 0;
+	exit(0);
 }
