@@ -3,13 +3,14 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #define MORE_LINES 1024
 #define MORE_CHARS 1024
 
 int main(int argc, char* argv[]){
 	FILE *fp;
-	
+	FILE *out;	
 	if (argc == 1){
 		fp = stdin;
 	} else if ( argc > 3){
@@ -28,6 +29,28 @@ int main(int argc, char* argv[]){
 		if(strcmp(argv[1],argv[2]) == 0){
 		fprintf(stderr, "reverse: input and output file must differ\n");
 		exit(1);}
+		
+		out = fopen(argv[2], "w");
+		if (out == NULL){
+			fprintf(stderr,"error: cannot open file '%s'",argv[2]);
+			exit(1);
+		}
+		struct stat s1, s2;
+		
+    	if (stat(argv[1], &s1) == -1) {
+        	perror("stat file1");
+       	 exit(1);
+    	}
+
+    	if (stat(argv[2], &s2) == -1) {
+        	perror("stat file2");
+        	exit(1);
+   	 }
+
+    	if (s1.st_ino == s2.st_ino && s1.st_dev == s2.st_dev) {
+        	fprintf(stderr,"reverse: input and output file must differ\n");
+		exit(1);
+    	}
 	}
 	
 
@@ -90,15 +113,10 @@ int main(int argc, char* argv[]){
 
 	
 	if (argc == 3){
-		FILE *wfp = fopen(argv[2], "w");
-		if (wfp == NULL){
-			fprintf(stderr,"error: cannot open file '%s'",argv[2]);
-			exit(1);
-		}
 		for (size_t i = total_lines; i >0; i --){
-			fprintf(wfp,"%s",lines[i-1]);
+			fprintf(out,"%s",lines[i-1]);
 		}
-		fclose(wfp);
+		fclose(out);
 	}else{
 		for (size_t i = total_lines; i >0; i--){
 			fprintf(stdout,"%s",lines[i-1]);
